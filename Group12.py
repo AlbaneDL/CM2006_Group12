@@ -488,11 +488,7 @@ class HipReplacementApp(QMainWindow):
         def undo_cut():
             # Reset volume clipping
             self.volume_mapper.RemoveAllClippingPlanes()
-
-            # Reset prosthesis actor
-            if hasattr(self, 'clipped_prosthesis_actor'):
-                self.renderer.RemoveActor(self.clipped_prosthesis_actor)
-                self.renderer.AddActor(self.prosthesis_actor)
+            self.prosthesis_mapper.RemoveAllClippingPlanes()
 
             # Re-render
             widget.GetRenderWindow().Render()
