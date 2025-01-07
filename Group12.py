@@ -284,7 +284,6 @@ class HipReplacementApp(QMainWindow):
             return scale_factor
 
 
-
     def prosthesis_rendering(self):
         # PROSTHESIS MODEL RENDERING (surface)
         # Prosthesis visualization as a surface
@@ -295,7 +294,7 @@ class HipReplacementApp(QMainWindow):
         # Normalize Units
         scale_factor = self.normalize_units(self.mask_reader.GetOutput(), self.prosthesis_reader.GetOutput())
 
-        # Mapper: since our input data is already an STL file, we don't need the marching cubes
+        # mapper: since our input data is already an stl file, we dont need the merching cubes
         self.prosthesis_mapper = vtk.vtkPolyDataMapper()
         self.prosthesis_mapper.SetInputConnection(self.prosthesis_reader.GetOutputPort())
 
@@ -306,37 +305,30 @@ class HipReplacementApp(QMainWindow):
         self.prosthesis_actor.GetProperty().SetOpacity(1.0)  # Fully opaque
 
         # Prosthesis Transformation Based on Side
-        prosthesis_transform = vtk.vtkTransform()
+        self.prosthesis_transform = vtk.vtkTransform()
 
         if self.side == "Right":
             print('Right chosen')
             # Translation adjustment
-            prosthesis_transform.Translate(58, 145, 68)  # Fine-tuned translation closer to the joint
+            self.prosthesis_transform.Translate(58, 145, 68)  # Fine-tuned translation closer to the joint
 
             # Rotation adjustments
-            prosthesis_transform.RotateWXYZ(90, 0, 1, 0)   # Flip around the Y-axis (kept as-is)
-            prosthesis_transform.RotateWXYZ(85, 1, 0, 0)   # Refined rotation along X-axis for ball position
-            prosthesis_transform.RotateWXYZ(-45, 0, 0, 1)  # Adjust Z-axis rotation for shaft alignment
-            prosthesis_transform.RotateWXYZ(20, -1, -0.2, 0)  # Minor tilt correction
-            prosthesis_transform.RotateWXYZ(15, 0, 0, 1)   # Small Z-axis fine-tuning
+            self.prosthesis_transform.RotateWXYZ(90, 0, 1, 0)   # Flip around the Y-axis (kept as-is)
+            self.prosthesis_transform.RotateWXYZ(85, 1, 0, 0)   # Refined rotation along X-axis for ball position
+            self.prosthesis_transform.RotateWXYZ(-45, 0, 0, 1)  # Adjust Z-axis rotation for shaft alignment
+            self.prosthesis_transform.RotateWXYZ(20, -1, -0.2, 0)  # Minor tilt correction
+            self.prosthesis_transform.RotateWXYZ(15, 0, 0, 1)   # Small Z-axis fine-tuning
+            
 
         elif self.side == "Left":
             print("Left chosen")
-            prosthesis_transform.Translate(280, 165, 30)
-            prosthesis_transform.RotateWXYZ(-90, 1, 0, 0)
-            prosthesis_transform.RotateWXYZ(45, 0, 1, 1)
-            prosthesis_transform.RotateWXYZ(-30, 0, 1, 0)
-
+            self.prosthesis_transform.Translate(280, 165, 30)
+            self.prosthesis_transform.RotateWXYZ(-90, 1, 0, 0)
+            self.prosthesis_transform.RotateWXYZ(45, 0, 1, 1)
+            self.prosthesis_transform.RotateWXYZ(-30, 0, 1, 0)
+        
         # Apply the transformation
-        self.prosthesis_actor.SetUserTransform(prosthesis_transform)
-
-        # Save the prosthesis transformation and states
-        self.prosthesis_transform = prosthesis_transform
-        self.translation_state = [0, 0, 0]  # Initial translation state
-        self.rotation_state = [0, 0, 0]     # Initial rotation state
-
-        #return prosthesis_transform
-
+        self.prosthesis_actor.SetUserTransform(self.prosthesis_transform)
 
 
 
@@ -524,49 +516,30 @@ class HipReplacementApp(QMainWindow):
 
         self.plane_widget.AddObserver("InteractionEvent", update_slices)
         
-    
-    def prosthesis_buttons(self, widget):  # these buttons can move and rotate the prosthesis
+
+    def prosthesis_buttons(self, widget): # these buttons can move and rotate the prosthesis
         translation_step = 5  # Step size for translation
         rotation_step = 5     # Step size for rotation in degrees
 
         # Helper functions for translation and rotation
         def translate(axis, step):
-            # Update translation state in world coordinates
-            if axis == 'x':
-                self.translation_state[0] += step
+            #self.prosthesis_transform.Identity()
+            if axis == 'x': 
+                self.prosthesis_transform.Translate(step, 0, 0)
             elif axis == 'y':
-                self.translation_state[1] += step
-            elif axis == 'z':
-                self.translation_state[2] += step
-
-            # Apply transformations in world coordinates
-            update_prosthesis_transform()
+                self.prosthesis_transform.Translate(0, step, 0)
+            elif axis == 'z': 
+                self.prosthesis_transform.Translate(0, 0, step)
+            widget.GetRenderWindow().Render()
 
         def rotate(axis, step):
-            # Update rotation state
+            #self.prosthesis_transform.Identity()
             if axis == 'x':
-                self.rotation_state[0] += step
+                self.prosthesis_transform.RotateWXYZ(step, 1, 0, 0)
             elif axis == 'y':
-                self.rotation_state[1] += step
+                self.prosthesis_transform.RotateWXYZ(step, 0, 1, 0)
             elif axis == 'z':
-                self.rotation_state[2] += step
-
-            # Apply transformations
-            update_prosthesis_transform()
-
-        def update_prosthesis_transform():
-            # Reset the transformation
-            self.prosthesis_transform.Identity()
-
-            # Apply translation in world coordinates
-            self.prosthesis_transform.Translate(*self.translation_state)
-
-            # Apply rotation in local coordinates
-            self.prosthesis_transform.RotateWXYZ(self.rotation_state[0], 1, 0, 0)  # Rotation around X-axis
-            self.prosthesis_transform.RotateWXYZ(self.rotation_state[1], 0, 1, 0)  # Rotation around Y-axis
-            self.prosthesis_transform.RotateWXYZ(self.rotation_state[2], 0, 0, 1)  # Rotation around Z-axis
-
-            # Update rendering
+                self.prosthesis_transform.RotateWXYZ(step, 0, 0, 1)
             widget.GetRenderWindow().Render()
 
         # Translation Buttons
@@ -590,7 +563,7 @@ class HipReplacementApp(QMainWindow):
         ]
 
         return translation_buttons, rotation_buttons
-                        
+      
 
     def create_general_controls(self):
         # Button for distance measurement
