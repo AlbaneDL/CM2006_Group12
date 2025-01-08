@@ -381,15 +381,9 @@ class HipReplacementApp(QMainWindow):
 
         def toggle_opacity():
             if self.is_semitransparent:
-                # Set fully opaque
-                volume_property.GetScalarOpacity().RemoveAllPoints()
-                volume_property.GetScalarOpacity().AddPoint(0, 0.0)  # Background is fully transparent
                 volume_property.GetScalarOpacity().AddPoint(1, 1.0)  # Bone is fully opaque
                 self.toggle_button_opacity.setText("Semi-Transparent")
             else:
-                # Set semi-transparent
-                volume_property.GetScalarOpacity().RemoveAllPoints()
-                volume_property.GetScalarOpacity().AddPoint(0, 0.0)  # Background is fully transparent
                 volume_property.GetScalarOpacity().AddPoint(1, 0.2)  # Bone is semi-transparent
                 self.toggle_button_opacity.setText("Fully Opaque")
             
