@@ -701,7 +701,7 @@ class HipReplacementApp(QMainWindow):
             camera.SetFocalPoint(*new_focal_point)
             camera.SetViewUp(*new_view_up)
 
-            self.renderer.ResetCameraClippingRange()  # Optional: Keep this last if needed
+            self.renderer.ResetCameraClippingRange()
             self.renderer.GetRenderWindow().Render()
 
             if step < steps:
